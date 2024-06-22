@@ -80,15 +80,15 @@ with tab2:
                 st.text_area('Content', key='chapter_content', on_change=chapterbox_onchange, value=chapter['content'])
                 break
     with col2:
-        right_col1, right_col2 = st.columns(2)
-        with right_col1:
+        col1, col2 = st.columns(2)
+        with col1:
             with st.popover("Create Chapter"):
                 st.markdown("Create new chapter")
                 chapter_name = st.text_input("What's the name of the chapter?")
                 if st.button('Add chapter'):
                     data['chapters'].append({'title': chapter_name, 'content': ''})
                     save_json(join(stories_path, st.session_state.file), data)
-        with right_col2:
+        with col2:
             if st.button('Delete Chapter'):
                 for i in range(len(data['chapters'])):
                     if data['chapters'][i]['title'] == st.session_state.chapter:
