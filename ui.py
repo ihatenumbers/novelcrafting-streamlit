@@ -41,6 +41,7 @@ with st.sidebar:
 tab1, tab2, tab3 = st.tabs(["Editor", "Viewer", "Chapter"])
 data = load_json(file_path)
 
+
 with tab1:
     col1, col2 = st.columns(2)
     with col1:
@@ -57,8 +58,23 @@ with tab1:
 with tab2:
     st.markdown(load_json(join(stories_path, st.session_state.file))['content'])
 
+# Ensure st.session_state.chapter is initialized
+if 'chapter' not in st.session_state:
+    st.session_state.chapter = data['chapters'][0]['title'] if data['chapters'] else ''
+
 with tab3:
     col1, col2 = st.columns(2)
+    with col1:
+        def chapterbox_onchange():
+            for i in range(len(data['chapters'])):
+                if data['chapters'][i]['title'] == st.session_state.chapter:
+                    data['chapters'][i]['content'] = st.session_state.chapter_content
+                    save_json(join(stories_path, st.session_state.file), data)
+                    break
+        for chapter in data['chapters']:
+            if chapter['title'] == st.session_state.chapter:
+                st.text_area('Content', key='chapter_content', on_change=chapterbox_onchange, value=chapter['content'])
+                break
     with col2:
         right_col1, right_col2 = st.columns(2)
         with right_col1:
@@ -77,14 +93,3 @@ with tab3:
                 save_json(join(stories_path, st.session_state.file), data)
         st.selectbox('Chapters', [chapter['title'] for chapter in data['chapters']], key='chapter')
         st.write("Chapters in file:", list_chapters_in_file(file_path))
-    with col1:
-        def chapterbox_onchange():
-            for i in range(len(data['chapters'])):
-                if data['chapters'][i]['title'] == st.session_state.chapter:
-                    data['chapters'][i]['content'] = st.session_state.chapter_content
-                    save_json(join(stories_path, st.session_state.file), data)
-                    break
-        for chapter in data['chapters']:
-            if chapter['title'] == st.session_state.chapter:
-                st.text_area('Content', key='chapter_content', on_change=chapterbox_onchange, value=chapter['content'])
-                break
