@@ -101,8 +101,8 @@ with tab2:
                 sb_desc = st.text_area("Description")
                 if st.button("Add"):
                     if 'data' not in data:
-                        data['data'] = []
-                    data['data'].append({'type': sb_type, 'name': sb_name, 'description': sb_desc})
+                        data['data'] = {'codex': [], 'snippets': [], 'chats': []}
+                    data['data']['codex'].append({'type': sb_type, 'name': sb_name, 'description': sb_desc})
                     save_json(file_path, data)
                     st.rerun()
         with tab2:
