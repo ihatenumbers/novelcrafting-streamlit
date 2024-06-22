@@ -1,6 +1,6 @@
 import streamlit as st
-from utils.save_load import save_json, load_json, list_files_in_dir, list_chapters_in_file
-from os.path import join, abspath
+from utils.save_load import save_json, load_json, list_files_in_dir, list_chapters_in_file, add_chapter, delete_chapter
+from os.path import join, exists
 import os
 
 st.set_page_config(
@@ -8,8 +8,10 @@ st.set_page_config(
 )
 
 stories_path = './stories/'
-if not os.path.exists(stories_path):
+if not exists(stories_path):
     os.mkdir(stories_path)
+if not exists(join(stories_path, 'deleted')):
+    os.mkdir(join(stories_path, 'deleted'))
 
 # if there's no file in the stories folder, create one
 if not list_files_in_dir(stories_path):
@@ -24,13 +26,17 @@ st.markdown("""
         </style>
         """, unsafe_allow_html=True)
 
+if 'list_in_dir' not in st.session_state:
+    st.session_state.list_in_dir = list_files_in_dir(stories_path)
+
 with st.sidebar:
-    selectbox = st.selectbox(
+    st.selectbox(
         'What file would you like to edit?',
-        list_files_in_dir(stories_path),
+        st.session_state.list_in_dir,
         key='file'
     )
     file_path = join(stories_path, st.session_state.file)
+    data = load_json(file_path)
     
     col1, col2 = st.columns(2)
     
@@ -39,17 +45,14 @@ with st.sidebar:
         file_name = st.text_input("What's the name of the file?")
         if st.button("Create"):
             save_json(join(stories_path, file_name + '.json'), {'title': file_name, 'content': '', 'chapters': []})
+            st.session_state.list_in_dir = list_files_in_dir(stories_path)
             st.rerun()
         if st.button("Delete File"):
-            # move file to stories/deleted
-            if not os.path.exists(join(stories_path, 'deleted')):
-                os.mkdir(join(stories_path, 'deleted'))
             os.rename(file_path, join(stories_path, 'deleted', st.session_state.file))
+            st.session_state.list_in_dir = list_files_in_dir(stories_path)
             st.rerun()
 
 tab1, tab2  = st.tabs(["Editor", "Chapter"])
-data = load_json(file_path)
-
 
 with tab1:
     col1, col2 = st.columns(2)
@@ -62,7 +65,7 @@ with tab1:
         st.text_area('Content', key='content', on_change=textbox_onchange, value=load_json(file_path)['content'])
     with col2:
         st.write("Content of file:", st.session_state.file)
-        st.write(load_json(join(stories_path, st.session_state.file)))
+        st.write(data)
 
 # Ensure st.session_state.chapter is initialized
 if 'chapter' not in st.session_state:
@@ -75,7 +78,7 @@ with tab2:
             for i in range(len(data['chapters'])):
                 if data['chapters'][i]['title'] == st.session_state.chapter:
                     data['chapters'][i]['content'] = st.session_state.chapter_content
-                    save_json(join(stories_path, st.session_state.file), data)
+                    save_json(file_path, data)
                     break
         for chapter in data['chapters']:
             if chapter['title'] == st.session_state.chapter:
@@ -86,16 +89,8 @@ with tab2:
         with st.popover("Chapter Settings"):
             st.markdown("Create new chapter")
             chapter_name = st.text_input("What's the name of the chapter?")
-            if st.button('Add chapter'):
-                data['chapters'].append({'title': chapter_name, 'content': ''})
-                save_json(file_path, data)
-            if st.button('Delete Chapter'):
-                for i in range(len(data['chapters'])):
-                    if data['chapters'][i]['title'] == st.session_state.chapter:
-                        save_json(join(stories_path, 'deleted', 'deleted-chapters.json'), data['chapters'][i], mode='a')
-                        data['chapters'].pop(i)
-                        break
-                save_json(file_path, data)
+            if st.button('Add chapter'): add_chapter(file_path, chapter_name)
+            if st.button('Delete Chapter'): delete_chapter(file_path, st.session_state.chapter)
         st.write("Chapters in file:", list_chapters_in_file(file_path))
         
         tab1, tab2, tab3  = st.tabs(["Codex", "Snippets", "Chats"])
@@ -109,6 +104,7 @@ with tab2:
                         data['data'] = []
                     data['data'].append({'type': sb_type, 'name': sb_name, 'description': sb_desc})
                     save_json(file_path, data)
+                    st.rerun()
         with tab2:
             pass
         with tab3:
