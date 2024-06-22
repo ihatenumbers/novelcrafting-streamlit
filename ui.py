@@ -11,6 +11,10 @@ stories_path = './stories/'
 if not os.path.exists(stories_path):
     os.mkdir(stories_path)
 
+# if there's no file in the stories folder, create one
+if not list_files_in_dir(stories_path):
+    save_json(join(stories_path, 'example.json'), {'title': 'example', 'content': '', 'chapters': []})
+
 # remove padding around the main container
 st.markdown("""
         <style>
@@ -30,14 +34,12 @@ with st.sidebar:
     
     col1, col2 = st.columns(2)
     
-    with col1:
-        with st.popover("Create File"):
-            st.markdown("Create new file")
-            file_name = st.text_input("What's the name of the file?")
-            if st.button("Create"):
-                save_json(join(stories_path, file_name + '.json'), {'title': file_name, 'content': '', 'chapters': []})
-                st.rerun()
-    with col2:
+    with st.popover("File Settings"):
+        st.markdown("Create new file")
+        file_name = st.text_input("What's the name of the file?")
+        if st.button("Create"):
+            save_json(join(stories_path, file_name + '.json'), {'title': file_name, 'content': '', 'chapters': []})
+            st.rerun()
         if st.button("Delete File"):
             # move file to stories/deleted
             if not os.path.exists(join(stories_path, 'deleted')):
@@ -80,20 +82,34 @@ with tab2:
                 st.text_area('Content', key='chapter_content', on_change=chapterbox_onchange, value=chapter['content'])
                 break
     with col2:
-        col1, col2 = st.columns(2)
-        with col1:
-            with st.popover("Create Chapter"):
-                st.markdown("Create new chapter")
-                chapter_name = st.text_input("What's the name of the chapter?")
-                if st.button('Add chapter'):
-                    data['chapters'].append({'title': chapter_name, 'content': ''})
-                    save_json(join(stories_path, st.session_state.file), data)
-        with col2:
+        st.selectbox('Chapters', [chapter['title'] for chapter in data['chapters']], key='chapter')
+        with st.popover("Chapter Settings"):
+            st.markdown("Create new chapter")
+            chapter_name = st.text_input("What's the name of the chapter?")
+            if st.button('Add chapter'):
+                data['chapters'].append({'title': chapter_name, 'content': ''})
+                save_json(file_path, data)
             if st.button('Delete Chapter'):
                 for i in range(len(data['chapters'])):
                     if data['chapters'][i]['title'] == st.session_state.chapter:
+                        save_json(join(stories_path, 'deleted', 'deleted-chapters.json'), data['chapters'][i], mode='a')
                         data['chapters'].pop(i)
                         break
-                save_json(join(stories_path, st.session_state.file), data)
-        st.selectbox('Chapters', [chapter['title'] for chapter in data['chapters']], key='chapter')
+                save_json(file_path, data)
         st.write("Chapters in file:", list_chapters_in_file(file_path))
+        
+        tab1, tab2, tab3  = st.tabs(["Codex", "Snippets", "Chats"])
+        with tab1:
+            with st.popover("+"):
+                sb_type = st.selectbox('Type', ['Person', 'Location', 'Item', 'Lore', 'Subplot', 'Other'])
+                sb_name = st.text_input("Name")
+                sb_desc = st.text_area("Description")
+                if st.button("Add"):
+                    if 'data' not in data:
+                        data['data'] = []
+                    data['data'].append({'type': sb_type, 'name': sb_name, 'description': sb_desc})
+                    save_json(file_path, data)
+        with tab2:
+            pass
+        with tab3:
+            pass

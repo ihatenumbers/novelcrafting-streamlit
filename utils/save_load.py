@@ -1,9 +1,10 @@
 import json
 
-def save_json(path, data):
-    with open(path, 'w') as f:
+def save_json(path, data, mode='w'):
+    with open(path, mode) as f:
         json.dump(data, f, indent=2)
-        # f.write('\n')
+        if mode == 'a':
+            f.write('\n')
 
 def load_json(path):
     with open(path, 'r') as f:
