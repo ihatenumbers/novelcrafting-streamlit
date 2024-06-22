@@ -4,6 +4,8 @@ from os.path import join, abspath
 import os
 
 stories_path = './stories/'
+if not os.path.exists(stories_path):
+    os.mkdir(stories_path)
 
 # remove padding around the main container
 st.markdown("""
@@ -35,6 +37,8 @@ with st.sidebar:
     with col2:
         if st.button("Delete File"):
             # move file to stories/deleted
+            if not os.path.exists(join(stories_path, 'deleted')):
+                os.mkdir(join(stories_path, 'deleted'))
             os.rename(file_path, join(stories_path, 'deleted', st.session_state.file))
             st.rerun()
 
