@@ -38,7 +38,7 @@ with st.sidebar:
             os.rename(file_path, join(stories_path, 'deleted', st.session_state.file))
             st.rerun()
 
-tab1, tab2, tab3 = st.tabs(["Editor", "Viewer", "Chapter"])
+tab1, tab2  = st.tabs(["Editor", "Chapter"])
 data = load_json(file_path)
 
 
@@ -55,14 +55,11 @@ with tab1:
         st.write("Content of file:", st.session_state.file)
         st.write(load_json(join(stories_path, st.session_state.file)))
 
-with tab2:
-    st.markdown(load_json(join(stories_path, st.session_state.file))['content'])
-
 # Ensure st.session_state.chapter is initialized
 if 'chapter' not in st.session_state:
     st.session_state.chapter = data['chapters'][0]['title'] if data['chapters'] else ''
 
-with tab3:
+with tab2:
     col1, col2 = st.columns(2)
     with col1:
         def chapterbox_onchange():
