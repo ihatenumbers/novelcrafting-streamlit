@@ -3,6 +3,10 @@ from utils.save_load import save_json, load_json, list_files_in_dir, list_chapte
 from os.path import join, abspath
 import os
 
+st.set_page_config(
+    page_title="Main"
+)
+
 stories_path = './stories/'
 if not os.path.exists(stories_path):
     os.mkdir(stories_path)
@@ -11,8 +15,7 @@ if not os.path.exists(stories_path):
 st.markdown("""
         <style>
                #root > div:nth-child(1) > div > div > div > div > section > div {
-                    padding-left: 0px !important;
-                    padding-right: 0px !important;
+                    max-width: none;
                 }
         </style>
         """, unsafe_allow_html=True)
