@@ -12,8 +12,6 @@ if not exists(stories_path):
     os.mkdir(stories_path)
 if not exists(join(stories_path, 'deleted')):
     os.mkdir(join(stories_path, 'deleted'))
-
-# if there's no file in the stories folder, create one
 if not list_files_in_dir(stories_path):
     save_json(join(stories_path, 'example.json'), {'title': 'example', 'content': '', 'chapters': []})
 
@@ -53,7 +51,6 @@ with st.sidebar:
             st.rerun()
 
 tab1, tab2  = st.tabs(["Editor", "Chapter"])
-
 with tab1:
     col1, col2 = st.columns(2)
     with col1:
@@ -67,7 +64,7 @@ with tab1:
         st.write("Content of file:", st.session_state.file)
         st.write(data)
 
-# Ensure st.session_state.chapter is initialized
+# ensure st.session_state.chapter is initialized
 if 'chapter' not in st.session_state:
     st.session_state.chapter = data['chapters'][0]['title'] if data['chapters'] else ''
 
