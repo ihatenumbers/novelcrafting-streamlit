@@ -17,22 +17,7 @@ def list_files_in_dir(path):
     return [f for f in listdir(path) if isfile(join(path, f))]
 
 def list_chapters_in_file(path):
-    data = load_json(path)
-    data = data['chapters']
+    data = load_json(path)['chapters']
     for i in range(len(data)):
         data[i] = {'title': data[i]['title'], 'content': data[i]['content']}
     return data
-
-def add_chapter(path, title):
-    data = load_json(path)
-    data['chapters'].append({'title': title, 'content': ''})
-    save_json(path, data)
-
-def delete_chapter(path, title):
-    data = load_json(path)
-    for i in range(len(data)):
-        if data['chapters'][i]['title'] == title:
-            save_json(join('stories', 'deleted', 'deleted-chapters.json'), data['chapters'][i], mode='a')
-            data['chapters'].pop(i)
-            break
-    save_json(path, data)
