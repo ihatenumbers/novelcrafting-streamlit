@@ -18,12 +18,14 @@ if not list_files_in_dir(stories_path):
 
 # remove padding around the main container
 st.markdown("""
-        <style>
-               #root > div:nth-child(1) > div > div > div > div > section > div {
-                    max-width: none;
-                }
-        </style>
-        """, unsafe_allow_html=True)
+<style>
+body {
+    line-height: normal;
+}
+#root > div:nth-child(1) > div > div > div > div > section > div {
+    max-width: none;
+}
+</style>""", unsafe_allow_html=True)
 
 def setState(key, value):
     st.session_state[key] = value
@@ -44,6 +46,10 @@ with st.sidebar:
     if 'json_data' not in st.session_state:
         setState('json_data', load_json(file_path))
     data = st.session_state.json_data
+
+    # ensure st.session_state.chapter is initialized
+    if 'chapter' not in st.session_state:
+        st.session_state.chapter = data['chapters'][0]['title'] if data['chapters'] else ''
     
     col1, col2 = st.columns(2)
     with st.popover("File Settings"):
@@ -70,10 +76,6 @@ with tab1:
     with col2:
         st.write("Content of file:", st.session_state.file)
         st.write(data)
-
-# ensure st.session_state.chapter is initialized
-if 'chapter' not in st.session_state:
-    st.session_state.chapter = data['chapters'][0]['title'] if data['chapters'] else ''
 
 with tab2:
     col1, col2 = st.columns(2)
@@ -115,6 +117,30 @@ with tab2:
                     data['data']['codex'].append({'type': sb_type, 'name': sb_name, 'description': sb_desc})
                     save_json(file_path, data)
                     st.rerun()
+            for i in range(len(data['data']['codex'])):
+                col1, col2 = st.columns([2, 1])
+                with col1:
+                    text = f"""**{data['data']['codex'][i]['name']}** [{data['data']['codex'][i]['type']}]<br>&nbsp;&nbsp;&nbsp;&nbsp;{data['data']['codex'][i]['description']}"""
+                    st.markdown(text, unsafe_allow_html=True)
+                with col2:
+                    with st.popover("Edit"):
+                        def codex_onchange():
+                            data['data']['codex'][i]['name'] = st.session_state[f'codex_{i}_name']
+                            data['data']['codex'][i]['description'] = st.session_state[f'codex_{i}_desc']
+                            save_json(file_path, data)
+                        st.text_input('Name', key=f'codex_{i}_name', value=data['data']['codex'][i]['name'], on_change=codex_onchange)
+                        st.text_area('Description', key=f'codex_{i}_desc', value=data['data']['codex'][i]['description'], on_change=codex_onchange)
+                        st.markdown("""
+<style>
+div.st-emotion-cache-ocqkz7.e1f1d6gn5 > div.st-emotion-cache-1r6slb0.e1f1d6gn3 > div {
+    text-align: end;
+}
+</style>""", unsafe_allow_html=True)
+                        if st.button("Delete", key=f'codex_{i}_delete'):
+                            save_json(join('stories', 'deleted', 'deleted-codex.json'), data['data']['codex'][i], mode='a')
+                            data['data']['codex'].pop(i)
+                            save_json(file_path, data)
+                            st.rerun()
         with tab2:
             pass
         with tab3:
